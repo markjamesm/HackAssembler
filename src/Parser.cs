@@ -16,12 +16,13 @@ public class Parser
         {
             if (line.StartsWith("//"))
             {
-                Console.WriteLine($"Skipping comment: {line}");
+                Console.WriteLine($"Skipping line (comment): {line}");
+                continue;
             }
 
             if (line == string.Empty)
             {
-                Console.WriteLine("Skipping whitespace line");
+                Console.WriteLine("Skipping line: whitespace");
             }
 
             if (line.StartsWith('@'))
@@ -29,7 +30,7 @@ public class Parser
                 ParseAInstruction(line);
             }
 
-            if (line.Contains('='))
+            if (line.Contains('=') || line.Contains(';'))
             {
                 ParseCInstruction(line);
             }
@@ -48,45 +49,24 @@ public class Parser
 
     private void ParseCInstruction(string line)
     {
-        var idx = line.IndexOf('=');
-        var dest = line.Substring(0, idx);
-
-        byte destByte;
+        byte? destValue;
+        byte? jumpInstruction;
         
-        switch (dest)
+        if (line.Contains('='))
         {
-            case "null":
-                Console.WriteLine("C-Instruction: NULL");
-                destByte = 0x0;
-                break;
-            case "M":
-                Console.WriteLine("C-Instruction: M Dest");
-                destByte = 0x1;
-                break;
-            case "D":   
-                destByte = 0x2;
-                Console.WriteLine($"C-Instruction: D Dest {destByte:B3}");
-                break;
-            case "MD":
-                Console.WriteLine("C-Instruction: MD Dest");
-                destByte = 0x3;
-                break;
-            case "A":
-                Console.WriteLine("C-Instruction: A Dest");
-                destByte = 0x4;
-                break;
-            case "AM":
-                Console.WriteLine("C-Instruction: AM Dest");
-                destByte = 0x5;
-                break;
-            case "AD":
-                Console.WriteLine("C-Instruction: AD Dest");
-                destByte = 0x6;
-                break;
-            case "AMD":
-                Console.WriteLine("C-Instruction: AMD Dest");
-                destByte = 0x7;
-                break;
+            var splitLine = line.Split('=');
+            var dest = splitLine[0];
+
+            destValue = GetDestinationByte(dest);
+        }
+        
+        if (line.Contains(';'))
+        {
+            var splitLine = line.Split(';');
+            var lhs = splitLine[0];
+            var rhs = splitLine[1];
+            
+            Console.WriteLine($"lhs: {lhs}, rhs: {rhs}");
         }
     }
     
@@ -95,6 +75,46 @@ public class Parser
     
     // dest = null, M, D, MD, A, AM, AD, AMD
     // d1 d2 d3
+
+    private static byte GetDestinationByte(string dest)
+    {
+        switch (dest)
+        {
+            case "null":
+                Console.WriteLine("C-Instruction: NULL");
+                return 0x0;
+            case "M":
+                Console.WriteLine($"C-Instruction: M Dest {0x1:B3}");
+                return 0x1;
+            case "D":   
+                Console.WriteLine($"C-Instruction: D Dest {0x2:B3}");
+                return 0x2;
+            case "MD":
+                Console.WriteLine("C-Instruction: MD Dest");
+                return 0x3;
+            case "A":
+                Console.WriteLine("C-Instruction: A Dest");
+                return 0x4;
+            case "AM":
+                Console.WriteLine("C-Instruction: AM Dest");
+                return 0x5;
+            case "AD":
+                Console.WriteLine("C-Instruction: AD Dest");
+                return 0x6;
+            case "AMD":
+                Console.WriteLine("C-Instruction: AMD Dest");
+                return 0x7;
+            default:
+                Console.WriteLine("Destination not recognized");
+                throw new ArgumentException("Error: destination not recognized");
+        }
+    }
+
+    /*
+    private byte GetCompByte(string comp)
+    {
+        
+    } */
 
     private void PrintMachineInstructions()
     {
