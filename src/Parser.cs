@@ -153,7 +153,7 @@ public class Parser
             "D+M" => new Comp(0x1, 0x2),
             "D-M" => new Comp(0x1, 0x13),
             "M-D" => new Comp(0x1, 0x7),
-            "D&M" => new Comp(0x1, 0x13),
+            "D&M" => new Comp(0x1, 0x0),
             "D|M" => new Comp(0x1, 0x15),
             _ => throw new ArgumentException("Error: Comp value not recognized")
         };
