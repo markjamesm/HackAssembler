@@ -2,17 +2,19 @@ namespace HackAssembler;
 
 public class Parser
 {
-    private readonly IEnumerable<string> _programLines;
+    private readonly string _filename;
+    private readonly IEnumerable<string> _asmInstructions;
     private readonly List<ushort> _machineInstructions = [];
 
-    public Parser(IEnumerable<string> programLines)
+    public Parser(string filename, IEnumerable<string> asmInstructions)
     {
-        _programLines = programLines;
+        _filename = filename;
+        _asmInstructions = asmInstructions;
     }
 
     public void Parse()
     {
-        foreach (var line in _programLines)
+        foreach (var line in _asmInstructions)
         {
             if (line.StartsWith("//"))
             {
@@ -36,7 +38,8 @@ public class Parser
             }
         }
 
-        PrintMachineInstructions();
+        FileWriter.SaveMachineInstructionsToFile(_filename,  _machineInstructions);
+        // PrintMachineInstructions();
     }
 
     private void ParseAInstruction(string line)
