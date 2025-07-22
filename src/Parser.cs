@@ -23,6 +23,8 @@ public class Parser
         {"R13", 0xD},
         {"R14", 0xE},
         {"R15", 0xF},
+        {"SCREEN", 0x4000},
+        {"KBD", 0x6000}
     };
 
     public Parser(string filename, IEnumerable<string> asmInstructions)
@@ -35,25 +37,32 @@ public class Parser
     {
         foreach (var line in _asmInstructions)
         {
-            if (line.StartsWith("//"))
+            var trimmedLine = line.Trim();
+            
+            if (trimmedLine.StartsWith("//"))
             {
-                Console.WriteLine($"Skipping line (comment): {line}");
+                Console.WriteLine($"Skipping line (comment): {trimmedLine}");
                 continue;
             }
 
-            if (line == string.Empty)
+            if (trimmedLine == string.Empty)
             {
                 Console.WriteLine("Skipping line: whitespace");
             }
 
-            if (line.StartsWith('@'))
+            if (trimmedLine.StartsWith('@'))
             {
-                ParseAInstruction(line);
+                ParseAInstruction(trimmedLine);
             }
 
-            if (line.Contains('=') || line.Contains(';'))
+            if (trimmedLine.Contains('=') || trimmedLine.Contains(';'))
             {
-                ParseCInstruction(line);
+                ParseCInstruction(trimmedLine);
+            }
+            
+            if (trimmedLine.StartsWith('('))
+            {
+                ParseLabel(trimmedLine);
             }
         }
 
@@ -66,13 +75,28 @@ public class Parser
         var registerValue = line.Split("@")[1];
         var isNumeric = ushort.TryParse(registerValue, out var registerValueInt);
 
-        if (isNumeric)
+        if (!isNumeric)
         {
-            // A-instructions start with 0
-            _machineInstructions.Add((ushort)(0 + registerValueInt));
-        }
+            if (_symbolTable.TryGetValue(registerValue, out var existingValue))
+            {
+                Console.WriteLine($"Symbol exists in table: {registerValue}");
+                
+                // A-instructions start with 0
+                _machineInstructions.Add((ushort)(0 + existingValue));
+            }
 
-        // Lookup associated value here
+            if (!_symbolTable.TryGetValue(registerValue, out _))
+            {
+                // Implement check to ensure memory is free
+                var randomRegister = Random.Shared.Next(16, 16383);
+                _symbolTable.Add(registerValue, (ushort)randomRegister);
+                
+                Console.WriteLine($"Symbol added to table: {registerValue}");
+                
+                // A-instructions start with 0
+                _machineInstructions.Add((ushort)(0 + randomRegister));
+            }
+        }
     }
 
     private void ParseCInstruction(string line)
@@ -115,6 +139,29 @@ public class Parser
         
         var instruction = BuildCInstruction(destinationBits, compBits?.AFlag, compBits?.CBits, jumpBits);
         _machineInstructions.Add(instruction);
+    }
+    
+    private void ParseLabel(string line)
+    {
+        var start = line.IndexOf('(') + 1;
+        var end =  line.IndexOf(')');
+        var labelName = line.Substring(start, end - start);
+
+        if (_symbolTable.TryGetValue(labelName, out var existingValue))
+        {
+            Console.WriteLine($"Label exists in table: {labelName}");
+         //   _machineInstructions.Add(existingValue);
+        }
+        /*
+        if (!_symbolTable.TryGetValue(labelName, out _))
+        {
+            Console.WriteLine($"Label doesn't exist: {labelName}");
+            
+            var randomRegister = Random.Shared.Next(16, 16383);
+            _symbolTable.Add(labelName, (ushort)randomRegister);
+            
+            _machineInstructions.Add((ushort)(0 + randomRegister));
+        } */
     }
 
     private static byte GetDestinationBits(string dest)
