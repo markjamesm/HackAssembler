@@ -8,7 +8,7 @@ class Program
         var asmFile = $"{currDir}/{args[0]}";
         var lines = File.ReadLines(asmFile);
         
-        Console.WriteLine($"Parsing ASM file: {currDir}/{args[0]}");
+        Console.WriteLine($"Parsing ASM file: {args[0]}");
         var parser = new Parser(lines);
         parser.Parse();
     }
