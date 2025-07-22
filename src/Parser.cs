@@ -85,33 +85,24 @@ public class Parser
             jumpBits = GetJumpBits(jumpVal);
         }
         
-        var instruction = BuildCInstruction(destinationBits, compBits, jumpBits);
+        var instruction = BuildCInstruction(destinationBits, compBits?.AFlag, compBits?.CBits, jumpBits);
         _machineInstructions.Add(instruction);
     }
 
     private static byte GetDestinationBits(string dest)
     {
-        switch (dest)
+        return dest switch
         {
-            case "null":
-                return 0x0;
-            case "M":
-                return 0x1;
-            case "D":
-                return 0x2;
-            case "MD":
-                return 0x3;
-            case "A":
-                return 0x4;
-            case "AM":
-                return 0x5;
-            case "AD":
-                return 0x6;
-            case "AMD":
-                return 0x7;
-            default:
-                throw new ArgumentException("Error: destination not recognized");
-        }
+            "null" => 0x0,
+            "M" => 0x1,
+            "D" => 0x2,
+            "MD" => 0x3,
+            "A" => 0x4,
+            "AM" => 0x5,
+            "AD" => 0x6,
+            "AMD" => 0x7,
+            _ => throw new ArgumentException("Error: destination not recognized")
+        };
     }
 
     private static byte GetJumpBits(string jumpInstruction)
@@ -165,11 +156,9 @@ public class Parser
         };
     }
 
-    private static ushort BuildCInstruction(byte? destinationBits, Comp comp, byte? jumpBits)
+    private static ushort BuildCInstruction(byte? destinationBits, byte? aFlag, byte? compBits, byte? jumpBits)
     {
-        var instruction = (ushort)(0b111 << 13 | ((comp.AFlag ?? 0) << 12) | ((comp.CBits ?? 000000) << 6) | ((destinationBits ?? 000) << 3) | jumpBits ?? 000);
-        
-        // Console.WriteLine($"{instruction:B16}");
+        var instruction = (ushort)((0b111 << 13) | ((aFlag ?? 0) << 12) | ((compBits ?? 000000) << 6) | ((destinationBits ?? 000) << 3) | (jumpBits ?? 000));
         return instruction;
     }
 
