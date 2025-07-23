@@ -7,4 +7,10 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
+    <ItemGroup>
+        <None Include="$(SolutionDir)HackAssemblyFiles\**"
+              CopyToOutputDirectory="PreserveNewest" 
+        />
+    </ItemGroup>
+    
 </Project>
