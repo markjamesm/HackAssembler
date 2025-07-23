@@ -24,16 +24,68 @@ public class Parser
         {"R14", 0xE},
         {"R15", 0xF},
         {"SCREEN", 0x4000},
-        {"KBD", 0x6000}
+        {"KBD", 0x6000},
+        {"SP", 0x0},
+        {"LCL", 0x1},
+        {"ARG", 0x2},
+        {"THIS", 0x3},
+        {"THAT", 0x4}
     };
+    
+    // Start at 16 because of R0 - R15
+    private int _variableCount = 16;
 
     public Parser(string filename, IEnumerable<string> asmInstructions)
     {
         _filename = filename;
         _asmInstructions = asmInstructions;
     }
-
+    
     public void Parse()
+    {
+        FirstPass();
+        SecondPass();
+    }
+
+    // Add the label symbols
+    private void FirstPass()
+    {
+        var lineCount = 0;
+        
+        foreach (var line in _asmInstructions)
+        {
+            var trimmedLine = line.Trim();
+            
+            if (trimmedLine.StartsWith("//"))
+            {
+               //Console.WriteLine($"Skipping line (comment): {trimmedLine}");
+               continue;
+            }
+
+            if (trimmedLine == string.Empty)
+            {
+                // Console.WriteLine("Skipping line: whitespace");
+                continue;
+            }
+
+            if (trimmedLine.StartsWith('@'))
+            {
+                lineCount++;
+            }
+
+            if (trimmedLine.Contains('=') || trimmedLine.Contains(';'))
+            {
+                lineCount++;
+            }
+            
+            if (trimmedLine.StartsWith('('))
+            {
+                ParseLabel(trimmedLine, lineCount);
+            }
+        }
+    }
+
+    private void SecondPass()
     {
         foreach (var line in _asmInstructions)
         {
@@ -41,13 +93,14 @@ public class Parser
             
             if (trimmedLine.StartsWith("//"))
             {
-                Console.WriteLine($"Skipping line (comment): {trimmedLine}");
+               // Console.WriteLine($"Skipping line (comment): {trimmedLine}");
                 continue;
             }
 
             if (trimmedLine == string.Empty)
             {
-                Console.WriteLine("Skipping line: whitespace");
+              //  Console.WriteLine("Skipping line: whitespace");
+                continue;
             }
 
             if (trimmedLine.StartsWith('@'))
@@ -62,14 +115,13 @@ public class Parser
             
             if (trimmedLine.StartsWith('('))
             {
-                ParseLabel(trimmedLine);
+
             }
         }
 
         FileWriter.SaveMachineInstructionsToFile(_filename,  _machineInstructions);
-        // PrintMachineInstructions();
     }
-
+    
     private void ParseAInstruction(string line)
     {
         var registerValue = line.Split("@")[1];
@@ -79,7 +131,7 @@ public class Parser
         {
             if (_symbolTable.TryGetValue(registerValue, out var existingValue))
             {
-                Console.WriteLine($"Symbol exists in table: {registerValue}");
+                Console.WriteLine($"Symbol exists in table: {registerValue}, Symbol value: {existingValue}");
                 
                 // A-instructions start with 0
                 _machineInstructions.Add((ushort)(0 + existingValue));
@@ -87,15 +139,20 @@ public class Parser
 
             if (!_symbolTable.TryGetValue(registerValue, out _))
             {
-                // Implement check to ensure memory is free
-                var randomRegister = Random.Shared.Next(16, 16383);
-                _symbolTable.Add(registerValue, (ushort)randomRegister);
-                
-                Console.WriteLine($"Symbol added to table: {registerValue}");
+                _symbolTable.Add(registerValue, (ushort)_variableCount);
+                Console.WriteLine($"Missing symbol added: {registerValue}");
                 
                 // A-instructions start with 0
-                _machineInstructions.Add((ushort)(0 + randomRegister));
+                _machineInstructions.Add((ushort)(0 + _variableCount));
+                
+                _variableCount++;
             }
+        }
+
+        if (isNumeric)
+        {
+            _machineInstructions.Add((ushort)(0 + registerValueInt));
+            Console.WriteLine($"Numeric A instruction added: {registerValueInt}");
         }
     }
 
@@ -141,27 +198,26 @@ public class Parser
         _machineInstructions.Add(instruction);
     }
     
-    private void ParseLabel(string line)
+    private void ParseLabel(string line, int lineCount)
     {
         var start = line.IndexOf('(') + 1;
         var end =  line.IndexOf(')');
         var labelName = line.Substring(start, end - start);
 
-        if (_symbolTable.TryGetValue(labelName, out var existingValue))
+        if (_symbolTable.TryGetValue(labelName, out _))
         {
             Console.WriteLine($"Label exists in table: {labelName}");
          //   _machineInstructions.Add(existingValue);
         }
-        /*
+        
         if (!_symbolTable.TryGetValue(labelName, out _))
         {
-            Console.WriteLine($"Label doesn't exist: {labelName}");
+            Console.WriteLine($"Added missing label: {labelName}, Line: {lineCount}");
             
-            var randomRegister = Random.Shared.Next(16, 16383);
-            _symbolTable.Add(labelName, (ushort)randomRegister);
+            _symbolTable.Add(labelName, (ushort)lineCount);
             
-            _machineInstructions.Add((ushort)(0 + randomRegister));
-        } */
+         //   _machineInstructions.Add((ushort)(0 + randomRegister));
+        }
     }
 
     private static byte GetDestinationBits(string dest)
