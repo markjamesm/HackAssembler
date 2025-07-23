@@ -6,8 +6,16 @@ computer.
 
 ## Instructions
 
-1. Place your .asm file into the same directory as the hack assembler.
-2. Run the hack assembler and pass <FILENAME>.asm as a command-line argument (eg: PongL.asm).
-3. The assembler will write the file to the same directory as the assembler, in the format <FILENAME.hack>
-(eg: PongL.hack)
-4. Load the resulting .hack file into the Hack Computer's online [CPU emulator](https://nand2tetris.github.io/web-ide/cpu)
+1. Place your .asm file into the same directory as the hack assembler. For convenience, three test asm files are included
+in the build directory (Max.asm, Rect.asm, and Pong.asm)
+2. Run the hack assembler and pass <FILENAME>.asm as a command-line argument (e.g.: Pong.asm).
+3. The assembler will write the resulting .hack file to the same directory as the assembler, in the format <FILENAME.hack>
+(e.g.: Pong.hack)
+4. Load the resulting .hack file into the Hack Computer's online [Hack Assembler](https://nand2tetris.github.io/web-ide/asm) 
+and compare the results.
+
+## Screenshot
+
+Successful comparison of Pong.hack to the official Hack Assembler's output:
+
+<img width="2559" height="1279" alt="Image" src="https://github.com/user-attachments/assets/c77e8259-a19c-4e1e-8b39-49617522ea07" />
