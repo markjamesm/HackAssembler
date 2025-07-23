@@ -6,7 +6,7 @@ can be loaded into the [Hack computer](https://nand2tetris.github.io/web-ide/cpu
 
 Successful comparison of Pong.hack to the official Hack Assembler's output:
 
-[!Successful comparison of Pong.hack](screenshots/successful-comparison-pong.png)
+[!Successful comparison of Pong.hack](screenshots/successful-comparison-pong.png?raw=true)
 
 ## Instructions
 
